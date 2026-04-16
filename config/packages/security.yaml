@@ -1,0 +1,38 @@
+security:
+    password_hashers:
+        App\Entity\User:
+            algorithm: bcrypt
+
+    providers:
+        app_user_provider:
+            entity:
+                class: App\Entity\User
+                property: email
+
+    firewalls:
+        dev:
+            pattern: ^/(_(profiler|wdt)|css|images|js)/
+            security: false
+
+        # Routes publiques (login, forgot/reset password)
+        public:
+            pattern: ^/auth/(login|forgot-password|reset-password)
+            stateless: true
+            security: false
+
+        # Toutes les autres routes protégées par JWT
+        api:
+            pattern: ^/
+            stateless: true
+            jwt: ~
+
+    access_control:
+        - { path: ^/auth/login, roles: PUBLIC_ACCESS }
+        - { path: ^/auth/forgot-password, roles: PUBLIC_ACCESS }
+        - { path: ^/auth/reset-password, roles: PUBLIC_ACCESS }
+        - { path: ^/api/doc, roles: PUBLIC_ACCESS }
+        - { path: ^/admin, roles: ROLE_ADMIN }
+        - { path: ^/, roles: ROLE_USER }
+
+    role_hierarchy:
+        ROLE_ADMIN: ROLE_USER
