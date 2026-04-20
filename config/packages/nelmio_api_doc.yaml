@@ -14,4 +14,4 @@ nelmio_api_doc:
             - Bearer: []
     areas:
         path_patterns:
-            - ^/(?!_)  # Toutes les routes sauf celles commençant par _
+            - ^/(?!_)

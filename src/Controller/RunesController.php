@@ -3,7 +3,6 @@
 namespace App\Controller;
 
 use App\Service\FastApiService;
-use App\Repository\UserRepository;
 use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -27,15 +26,22 @@ class RunesController extends AbstractController
     {
         $file = $request->files->get('file');
 
+        error_log('=== IMPORT DEBUG ===');
+        error_log('Files: ' . print_r(array_keys($request->files->all()), true));
+        error_log('Content-Type: ' . $request->headers->get('Content-Type'));
+
         if (!$file) {
+            error_log('No file received');
             return $this->json(['message' => 'Fichier manquant.'], Response::HTTP_BAD_REQUEST);
         }
+
+        error_log('File: ' . $file->getClientOriginalName() . ' | path: ' . $file->getRealPath() . ' | size: ' . $file->getSize());
 
         $userId = $this->getUser()->getId();
 
         $result = $this->fastApiService->importJson($userId, $file);
 
-        return $this->json($result, $result['error'] ?? false ? Response::HTTP_BAD_GATEWAY : Response::HTTP_OK);
+        return $this->json($result, isset($result['error']) ? Response::HTTP_BAD_GATEWAY : Response::HTTP_OK);
     }
 
     #[Route('/averages', name: 'averages', methods: ['GET'])]
@@ -53,7 +59,6 @@ class RunesController extends AbstractController
     {
         $userId = $this->getUser()->getId();
 
-        // Récupérer l'import_id actif de l'utilisateur depuis FastAPI
         $importId = $this->fastApiService->getActiveImportId($userId);
 
         if (!$importId) {

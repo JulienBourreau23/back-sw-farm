@@ -4,6 +4,8 @@ namespace App\Service;
 
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
+use Symfony\Component\Mime\Part\DataPart;
+use Symfony\Component\Mime\Part\Multipart\FormDataPart;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class FastApiService
@@ -24,16 +26,20 @@ class FastApiService
     public function importJson(int $userId, UploadedFile $file): array
     {
         try {
-            $response = $this->httpClient->request('POST', "{$this->fastApiUrl}/import/{$userId}", [
-                'headers' => $this->headers(),
-                'body'    => [
-                    'file' => fopen($file->getPathname(), 'r'),
-                ],
+            $tempPath = $file->getRealPath();
+            if (!$tempPath || !file_exists($tempPath)) {
+                return ['error' => true, 'message' => 'Fichier temporaire introuvable.'];
+            }
+            $formData = new FormDataPart([
+                'file' => DataPart::fromPath($tempPath, $file->getClientOriginalName(), 'application/json'),
             ]);
-
+            $response = $this->httpClient->request('POST', "{$this->fastApiUrl}/import/{$userId}", [
+                'headers' => array_merge($this->headers(), $formData->getPreparedHeaders()->toArray()),
+                'body'    => $formData->bodyToString(),
+            ]);
             return $response->toArray();
         } catch (\Exception $e) {
-            return ['error' => true, 'message' => 'Erreur lors de l\'import : ' . $e->getMessage()];
+            return ['error' => true, 'message' => 'Erreur import : ' . $e->getMessage()];
         }
     }
 
@@ -43,9 +49,7 @@ class FastApiService
             $response = $this->httpClient->request('GET', "{$this->fastApiUrl}/import/{$userId}/active", [
                 'headers' => $this->headers(),
             ]);
-
-            $data = $response->toArray();
-            return $data['import_id'] ?? null;
+            return $response->toArray()['import_id'] ?? null;
         } catch (\Exception $e) {
             return null;
         }
@@ -58,10 +62,60 @@ class FastApiService
                 'headers' => $this->headers(),
                 'query'   => $params,
             ]);
-
             return $response->toArray();
         } catch (\Exception $e) {
             return ['error' => true, 'message' => 'Erreur FastAPI : ' . $e->getMessage()];
+        }
+    }
+
+    public function getTopSets(int $userId, int $limit = 5): array
+    {
+        try {
+            $response = $this->httpClient->request('GET', "{$this->fastApiUrl}/stats/{$userId}/top-sets", [
+                'headers' => $this->headers(),
+                'query'   => ['limit' => $limit],
+            ]);
+            return $response->toArray();
+        } catch (\Exception $e) {
+            return [];
+        }
+    }
+
+    public function getTop3ByStat(int $userId, string $statCode, float $minPct = 10.0): array
+    {
+        try {
+            $response = $this->httpClient->request('GET', "{$this->fastApiUrl}/stats/{$userId}/top3-by-stat", [
+                'headers' => $this->headers(),
+                'query'   => ['stat_code' => $statCode, 'min_pct' => $minPct],
+            ]);
+            return $response->toArray();
+        } catch (\Exception $e) {
+            return [];
+        }
+    }
+
+    public function getTotalRunes(int $userId): array
+    {
+        try {
+            $response = $this->httpClient->request('GET', "{$this->fastApiUrl}/stats/{$userId}/total-runes", [
+                'headers' => $this->headers(),
+            ]);
+            return $response->toArray();
+        } catch (\Exception $e) {
+            return ['total_runes' => 0];
+        }
+    }
+
+    public function getAvailablePriStats(int $userId, int $setId): array
+    {
+        try {
+            $response = $this->httpClient->request('GET', "{$this->fastApiUrl}/stats/{$userId}/available-pri-stats", [
+                'headers' => $this->headers(),
+                'query'   => ['set_id' => $setId],
+            ]);
+            return $response->toArray();
+        } catch (\Exception $e) {
+            return ['2' => [], '4' => [], '6' => []];
         }
     }
 }

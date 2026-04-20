@@ -2,6 +2,7 @@ doctrine:
     dbal:
         url: '%env(resolve:DATABASE_URL)%'
         use_savepoints: true
+        schema_filter: '/^users/'
 
     orm:
         auto_generate_proxy_classes: true
