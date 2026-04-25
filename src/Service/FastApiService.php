@@ -118,4 +118,31 @@ class FastApiService
             return ['2' => [], '4' => [], '6' => []];
         }
     }
+
+    // ── Artefacts ────────────────────────────────────────────
+
+    public function getArtifactAverages(int $userId, int $importId, array $params = []): array
+    {
+        try {
+            $response = $this->httpClient->request('GET', "{$this->fastApiUrl}/artifacts/{$userId}/{$importId}/averages", [
+                'headers' => $this->headers(),
+                'query'   => $params,
+            ]);
+            return $response->toArray();
+        } catch (\Exception $e) {
+            return ['error' => true, 'message' => 'Erreur FastAPI : ' . $e->getMessage()];
+        }
+    }
+
+    public function getArtifactStats(int $userId, int $importId): array
+    {
+        try {
+            $response = $this->httpClient->request('GET', "{$this->fastApiUrl}/artifacts/{$userId}/{$importId}/stats", [
+                'headers' => $this->headers(),
+            ]);
+            return $response->toArray();
+        } catch (\Exception $e) {
+            return ['error' => true, 'message' => 'Erreur FastAPI : ' . $e->getMessage()];
+        }
+    }
 }
