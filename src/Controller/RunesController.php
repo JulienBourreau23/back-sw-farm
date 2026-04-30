@@ -26,19 +26,11 @@ class RunesController extends AbstractController
     {
         $file = $request->files->get('file');
 
-        error_log('=== IMPORT DEBUG ===');
-        error_log('Files: ' . print_r(array_keys($request->files->all()), true));
-        error_log('Content-Type: ' . $request->headers->get('Content-Type'));
-
         if (!$file) {
-            error_log('No file received');
             return $this->json(['message' => 'Fichier manquant.'], Response::HTTP_BAD_REQUEST);
         }
 
-        error_log('File: ' . $file->getClientOriginalName() . ' | path: ' . $file->getRealPath() . ' | size: ' . $file->getSize());
-
         $userId = $this->getUser()->getId();
-
         $result = $this->fastApiService->importJson($userId, $file);
 
         return $this->json($result, isset($result['error']) ? Response::HTTP_BAD_GATEWAY : Response::HTTP_OK);
@@ -48,21 +40,24 @@ class RunesController extends AbstractController
     #[OA\Get(
         summary: 'Récupérer les moyennes de substats',
         parameters: [
-            new OA\Parameter(name: 'set_id', in: 'query', required: false, schema: new OA\Schema(type: 'integer')),
-            new OA\Parameter(name: 'slot_no', in: 'query', required: false, schema: new OA\Schema(type: 'integer')),
-            new OA\Parameter(name: 'pri_stat', in: 'query', required: false, schema: new OA\Schema(type: 'integer')),
-            new OA\Parameter(name: 'min_upgrade', in: 'query', required: false, schema: new OA\Schema(type: 'integer')),
-            new OA\Parameter(name: 'refresh', in: 'query', required: false, schema: new OA\Schema(type: 'boolean')),
+            new OA\Parameter(name: 'set_id',     in: 'query', required: false, schema: new OA\Schema(type: 'integer')),
+            new OA\Parameter(name: 'slot_no',    in: 'query', required: false, schema: new OA\Schema(type: 'integer')),
+            new OA\Parameter(name: 'pri_stat',   in: 'query', required: false, schema: new OA\Schema(type: 'integer')),
+            new OA\Parameter(name: 'min_upgrade',in: 'query', required: false, schema: new OA\Schema(type: 'integer')),
+            new OA\Parameter(name: 'is_ancient', in: 'query', required: false, schema: new OA\Schema(type: 'boolean'), description: 'true=immémorial, false=normales, absent=toutes'),
+            new OA\Parameter(name: 'refresh',    in: 'query', required: false, schema: new OA\Schema(type: 'boolean')),
         ]
     )]
     public function averages(Request $request): JsonResponse
     {
-        $userId = $this->getUser()->getId();
-
+        $userId   = $this->getUser()->getId();
         $importId = $this->fastApiService->getActiveImportId($userId);
 
         if (!$importId) {
-            return $this->json(['message' => 'Aucun import trouvé. Veuillez importer votre JSON SW.'], Response::HTTP_NOT_FOUND);
+            return $this->json(
+                ['message' => 'Aucun import trouvé. Veuillez importer votre JSON SW.'],
+                Response::HTTP_NOT_FOUND
+            );
         }
 
         $params = array_filter([
@@ -70,8 +65,9 @@ class RunesController extends AbstractController
             'slot_no'     => $request->query->get('slot_no'),
             'pri_stat'    => $request->query->get('pri_stat'),
             'min_upgrade' => $request->query->get('min_upgrade'),
+            'is_ancient'  => $request->query->get('is_ancient'),
             'refresh'     => $request->query->get('refresh', 'false'),
-        ], fn($v) => $v !== null);
+        ], fn($v) => $v !== null && $v !== '');
 
         $result = $this->fastApiService->getAverages($userId, $importId, $params);
 

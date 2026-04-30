@@ -68,6 +68,16 @@ class FastApiService
         }
     }
 
+    public function getAveragesAncient(int $userId, int $importId, array $params = []): array
+    {
+        return $this->getAverages($userId, $importId, array_merge($params, ['is_ancient' => 'true']));
+    }
+
+    public function getAveragesNormal(int $userId, int $importId, array $params = []): array
+    {
+        return $this->getAverages($userId, $importId, array_merge($params, ['is_ancient' => 'false']));
+    }
+
     public function getTopSets(int $userId, int $limit = 5): array
     {
         try {
