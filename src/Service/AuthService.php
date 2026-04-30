@@ -24,7 +24,7 @@ class AuthService
 
     public function login(string $email, string $password): ?array
     {
-        $user = $this->userRepository->findOneBy(['email' => $email]);
+        $user = $this->userRepository->findOneByEmailOrUsername($email);
 
         if (!$user || !$user->isActive()) {
             return null;
