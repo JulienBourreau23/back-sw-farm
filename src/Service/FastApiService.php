@@ -169,4 +169,19 @@ class FastApiService
             return ['error' => true, 'message' => 'Erreur FastAPI : ' . $e->getMessage()];
         }
     }
+
+    public function getMonsterIcon(int $unitMasterId): ?string
+    {
+        try {
+            $response = $this->httpClient->request('GET', "{$this->fastApiUrl}/monsters/icon/{$unitMasterId}", [
+                'headers' => $this->headers(),
+            ]);
+            if ($response->getStatusCode() !== 200) {
+                return null;
+            }
+            return $response->getContent();
+        } catch (\Exception $e) {
+            return null;
+        }
+    }
 }

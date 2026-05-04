@@ -11,7 +11,6 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/monsters', name: 'monsters_')]
-#[IsGranted('ROLE_USER')]
 #[OA\Tag(name: 'Monsters')]
 class MonstersController extends AbstractController
 {
@@ -20,6 +19,7 @@ class MonstersController extends AbstractController
     ) {}
 
     #[Route('', name: 'list', methods: ['GET'])]
+    #[IsGranted('ROLE_USER')]
     #[OA\Get(summary: 'Récupérer les monstres possédés de l\'import actif')]
     public function list(): JsonResponse
     {
@@ -42,5 +42,21 @@ class MonstersController extends AbstractController
         }
 
         return $this->json($result);
+    }
+
+    #[Route('/icon/{unitMasterId}', name: 'icon', methods: ['GET'])]
+    #[OA\Get(summary: 'Récupérer l\'icône d\'un monstre')]
+    public function icon(int $unitMasterId): Response
+    {
+        $imageData = $this->fastApiService->getMonsterIcon($unitMasterId);
+
+        if ($imageData === null) {
+            return new Response('', Response::HTTP_NOT_FOUND);
+        }
+
+        return new Response($imageData, Response::HTTP_OK, [
+            'Content-Type'  => 'image/png',
+            'Cache-Control' => 'public, max-age=86400',
+        ]);
     }
 }
