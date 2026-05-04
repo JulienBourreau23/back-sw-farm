@@ -14,9 +14,9 @@ security:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
             security: false
 
-        # Routes publiques (login, forgot/reset password)
+        # Routes publiques (login, forgot/reset password, icônes monstres)
         public:
-            pattern: ^/auth/(login|forgot-password|reset-password)
+            pattern: ^/(auth/(login|forgot-password|reset-password)|monsters/icon/)
             stateless: true
             security: false
 
@@ -30,6 +30,7 @@ security:
         - { path: ^/auth/login, roles: PUBLIC_ACCESS }
         - { path: ^/auth/forgot-password, roles: PUBLIC_ACCESS }
         - { path: ^/auth/reset-password, roles: PUBLIC_ACCESS }
+        - { path: ^/monsters/icon/, roles: PUBLIC_ACCESS }
         - { path: ^/api/, roles: PUBLIC_ACCESS }
         - { path: ^/api/doc, roles: PUBLIC_ACCESS }
         - { path: ^/admin, roles: ROLE_ADMIN }
