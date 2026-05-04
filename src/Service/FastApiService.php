@@ -155,4 +155,18 @@ class FastApiService
             return ['error' => true, 'message' => 'Erreur FastAPI : ' . $e->getMessage()];
         }
     }
+
+    // ── Monstres ─────────────────────────────────────────────
+
+    public function getMonsters(int $userId): array
+    {
+        try {
+            $response = $this->httpClient->request('GET', "{$this->fastApiUrl}/monsters/{$userId}", [
+                'headers' => $this->headers(),
+            ]);
+            return $response->toArray();
+        } catch (\Exception $e) {
+            return ['error' => true, 'message' => 'Erreur FastAPI : ' . $e->getMessage()];
+        }
+    }
 }
