@@ -73,4 +73,28 @@ class RunesController extends AbstractController
 
         return $this->json($result);
     }
+
+    #[Route('/previous-averages', name: 'previous_averages', methods: ['GET'])]
+    #[OA\Get(
+        summary: 'Moyennes de substats de l\'import précédent (comparaison)',
+        parameters: [
+            new OA\Parameter(name: 'set_id',  in: 'query', required: false, schema: new OA\Schema(type: 'integer')),
+            new OA\Parameter(name: 'slot_no', in: 'query', required: false, schema: new OA\Schema(type: 'integer')),
+            new OA\Parameter(name: 'pri_stat',in: 'query', required: false, schema: new OA\Schema(type: 'integer')),
+        ]
+    )]
+    public function previousAverages(Request $request): JsonResponse
+    {
+        $userId = $this->getUser()->getId();
+
+        $params = array_filter([
+            'set_id'  => $request->query->get('set_id'),
+            'slot_no' => $request->query->get('slot_no'),
+            'pri_stat'=> $request->query->get('pri_stat'),
+        ], fn($v) => $v !== null && $v !== '');
+
+        $result = $this->fastApiService->getPreviousAverages($userId, $params);
+
+        return $this->json($result);
+    }
 }

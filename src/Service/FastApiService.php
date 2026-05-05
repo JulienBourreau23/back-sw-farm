@@ -78,6 +78,19 @@ class FastApiService
         return $this->getAverages($userId, $importId, array_merge($params, ['is_ancient' => 'false']));
     }
 
+    public function getPreviousAverages(int $userId, array $params = []): array
+    {
+        try {
+            $response = $this->httpClient->request('GET', "{$this->fastApiUrl}/averages/{$userId}/previous", [
+                'headers' => $this->headers(),
+                'query'   => $params,
+            ]);
+            return $response->toArray();
+        } catch (\Exception $e) {
+            return ['averages' => []];
+        }
+    }
+
     public function getTopSets(int $userId, int $limit = 5): array
     {
         try {
